@@ -5,9 +5,10 @@
 
 <PageTitle>Gaming Platform</PageTitle>
 
+<div class="container text-center">
 @if (!string.IsNullOrEmpty(currentPlayer))
 {
-    <h1>Hello @currentPlayer!</h1>
+    <h3>Hello <strong>@currentPlayer</strong>! </h3>
 }
 else
 {
@@ -22,14 +23,18 @@ else
 
 @if (currentGameRoom != null)
 {
-    <h1>You joined the game: @currentGameRoom.Game</h1>
+    <h4>You joined the game: <strong>@currentGameRoom.Game</strong></h4>
     @if (string.IsNullOrEmpty(currentGameRoom.Player2))
     {
-        <h1>waiting opponent...</h1>
+        <h5>...waiting opponent...</h5>
     }
     else
     {
-        <h1>@currentGameRoom.Player1 vs @currentGameRoom.Player2</h1>
+        <h4>@currentGameRoom.Player1 vs @currentGameRoom.Player2</h4>
+        if(currentGameRoom.Game == GameType.TicTacToe)
+        {
+            <TicTacToe HubConnection="@hubConnection" CurrentGameRoom="@currentGameRoom" CurrentPlayer="@currentPlayer"></TicTacToe>
+        }
     }
 }
 
@@ -46,7 +51,7 @@ else
                         <img src="img/@gameIcon" />
                         <div class="card-body">
                             <h5 class="card-title">@gameRoom.Game</h5>
-                            <p class="card-text">Player @gameRoom.Player1 waits for his opponent.</p>
+                            <p class="card-text">Player <strong>@gameRoom.Player1</strong> waits for his opponent.</p>
                         </div>
                         <div class="card-footer text-center">
                             <button type="button" class="btn btn-outline-dark btn-sm" disabled="@string.IsNullOrEmpty(currentPlayer)" @onclick="() => JoinGameRoom(gameRoom.Id)">Join</button>
@@ -76,6 +81,7 @@ else
         </div>
     </div>
 }
+</div>
 
 @code {
     private HubConnection? hubConnection;
@@ -100,20 +106,6 @@ else
         hubConnection.On<List<GameRoom>>("ReceiveAvailableGameRooms", async (gameRooms) =>
         {
             availableGameRooms = gameRooms;
-            await InvokeAsync(StateHasChanged);
-        });
-
-        hubConnection.On<PlayerMove>("ReceiveOpponentMove", async (playerMove) =>
-        {
-            //var result = ticTacToeGameSerivce.MakePlayerMove(TicTacToeGameService.BoardItem.O, playerMove);
-            //if (result) gameResult = "LOSE!";
-            await InvokeAsync(StateHasChanged);
-        });
-
-        hubConnection.On("ReceiveRestartGame", async () =>
-        {
-            //ticTacToeGameSerivce.InitEmptyBoard();
-            //gameResult = null;
             await InvokeAsync(StateHasChanged);
         });
 

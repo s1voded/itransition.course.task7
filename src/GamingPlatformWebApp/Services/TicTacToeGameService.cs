@@ -34,17 +34,17 @@ namespace GamingPlatformWebApp.Services
             }
         }
 
-        public bool MakePlayerMove(PlayerMove playerMove)
+        public bool MakePlayerMove(GameMove playerGameMove)
         {
-            return MakeGameMove(playerMove, playerItem);
+            return MakeGameMove(playerGameMove, playerItem);
         }
 
-        public bool MakeOpponentMove(PlayerMove opponentMove)
+        public bool MakeOpponentMove(GameMove opponentGameMove)
         {
-            return MakeGameMove(opponentMove, opponentItem);
+            return MakeGameMove(opponentGameMove, opponentItem);
         }
 
-        private bool MakeGameMove(PlayerMove gameMove, BoardItem boardItem)
+        private bool MakeGameMove(GameMove gameMove, BoardItem boardItem)
         {
             gameBoard[gameMove.Row, gameMove.Col] = boardItem;
             return GameResult();

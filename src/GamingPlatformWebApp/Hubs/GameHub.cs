@@ -51,9 +51,9 @@ namespace GamingPlatformWebApp.Hubs
             await SendAvailableGameRooms();
         }
 
-        public async Task SendMoveToOpponent(int gameRoomId, PlayerMove playerMove)
+        public async Task SendMoveToOpponent(int gameRoomId, GameMove gameMove)
         {
-            await Clients.OthersInGroup(gameRoomId.ToString()).ReceiveOpponentMove(playerMove);
+            await Clients.OthersInGroup(gameRoomId.ToString()).ReceiveOpponentMove(gameMove);
         }
 
         public async Task SendRestartGame(int gameRoomId)
@@ -66,7 +66,7 @@ namespace GamingPlatformWebApp.Hubs
     {
         Task ReceiveAvailableGameRooms(List<GameRoom> availableGameRooms);
         Task ReceiveCurrentGameRoom(GameRoom gameRoom);
-        Task ReceiveOpponentMove(PlayerMove playerMove);
+        Task ReceiveOpponentMove(GameMove gameMove);
         Task ReceiveRestartGame();
     }
 }

@@ -1,0 +1,84 @@
+﻿@inject TicTacToeGameService ticTacToeGameSerivce
+
+<div class="container text-center">
+    @for (byte i = 0; i < TicTacToeGameService.BoardSize; i++)
+    {
+        <div class="row justify-content-md-center">
+            @for (byte j = 0; j < TicTacToeGameService.BoardSize; j++)
+            {
+                <div class="col-md-auto">
+                    @if (ticTacToeGameSerivce.GameBoard[i, j] == TicTacToeGameService.BoardItem.Empty)
+                    {
+                        var gameMove = new GameMove() { Row = i, Col = j };
+                        <button type="button" class="btn btn-outline-dark btn-square-md" disabled="@(!myTurnMakeGameMove)" @onclick="() => MakePlayerMove(gameMove)"></button>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-outline-dark btn-square-md" disabled="@true">@ticTacToeGameSerivce.GameBoard[i, j].ToString()</button>
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    @if (myTurnMakeGameMove) {<h5>@CurrentPlayer turn</h5>}
+    else {<h5>@opponentNickName turn</h5>}
+</div>
+
+@code {
+    [Parameter] public HubConnection? HubConnection { get; set; }
+    [Parameter] public GameRoom? CurrentGameRoom { get; set; }
+    [Parameter] public string? CurrentPlayer { get; set; }
+
+    private bool myTurnMakeGameMove = false;
+    private string? opponentNickName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        HubConnection?.On<GameMove>("ReceiveOpponentMove", async (gameMove) =>
+        {
+            myTurnMakeGameMove = !myTurnMakeGameMove;
+            ticTacToeGameSerivce.MakeOpponentMove(gameMove);
+            await InvokeAsync(StateHasChanged);
+        });
+
+        HubConnection?.On("ReceiveRestartGame", async () =>
+        {
+            ticTacToeGameSerivce.InitEmptyBoard();
+            await InvokeAsync(StateHasChanged);
+        });
+
+        await InitOpponentAndTurn();
+    }
+
+    private async Task MakePlayerMove(GameMove gameMove)
+    {
+        myTurnMakeGameMove = !myTurnMakeGameMove;
+        ticTacToeGameSerivce.MakePlayerMove(gameMove);
+        await SendMoveToOpponent(gameMove);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SendMoveToOpponent(GameMove gameMove)
+    {
+        if (HubConnection is not null)
+        {
+            await HubConnection.SendAsync("SendMoveToOpponent", CurrentGameRoom?.Id, gameMove);
+        }
+    }
+
+    private async Task InitOpponentAndTurn()
+    {
+        //player2 make game move first
+        if (CurrentPlayer == CurrentGameRoom?.Player2)
+        {
+            myTurnMakeGameMove = true;
+            opponentNickName = CurrentGameRoom?.Player1;
+        }
+        else
+        {
+            opponentNickName = CurrentGameRoom?.Player2;
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+}
