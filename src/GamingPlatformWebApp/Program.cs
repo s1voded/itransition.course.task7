@@ -1,4 +1,5 @@
 using GamingPlatformWebApp.Components;
+using GamingPlatformWebApp.Data;
 using GamingPlatformWebApp.Hubs;
 using GamingPlatformWebApp.Services;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -14,6 +15,7 @@ builder.Services.AddResponseCompression(opts =>
     opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(["application/octet-stream"]);
 });
 
+builder.Services.AddScoped<IGameRepository, GameRepository>();
 builder.Services.AddTransient<TicTacToeGameService>();
 
 var app = builder.Build();
