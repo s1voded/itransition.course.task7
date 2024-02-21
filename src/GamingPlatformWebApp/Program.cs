@@ -1,5 +1,6 @@
 using GamingPlatformWebApp.Components;
 using GamingPlatformWebApp.Hubs;
+using GamingPlatformWebApp.Services;
 using Microsoft.AspNetCore.ResponseCompression;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +13,8 @@ builder.Services.AddResponseCompression(opts =>
 {
     opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(["application/octet-stream"]);
 });
+
+builder.Services.AddTransient<TicTacToeGameService>();
 
 var app = builder.Build();
 
