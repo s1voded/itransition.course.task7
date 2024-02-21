@@ -26,8 +26,9 @@ namespace GamingPlatformWebApp.Data
         }
 
         public void RemoveGameRoom(GameRoom gameRoom) 
-        {  
-            gameRooms.Remove(gameRoom); 
+        {
+            var gameRoomForRemove = gameRooms.FirstOrDefault(g => g.Id == gameRoom.Id);
+            if (gameRoomForRemove != null) gameRooms.Remove(gameRoomForRemove); 
         }
 
         public List<GameRoom> GetAvailableGameRooms()
