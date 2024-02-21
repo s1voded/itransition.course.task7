@@ -7,6 +7,13 @@
         Battleship
     }
 
+    public enum GameResult
+    {
+        Win,
+        Lose,
+        Draw
+    }
+
     public class GameRoom
     {
         public int Id { get; set; }
