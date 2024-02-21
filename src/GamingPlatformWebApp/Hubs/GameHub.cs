@@ -24,12 +24,13 @@ namespace GamingPlatformWebApp.Hubs
         {
             var gameRoom = _gameRepository.JoinGameRoom(gameRoomId, opponent);
             if (gameRoom != null) await JoinGroup(gameRoom);
+            await SendAvailableGameRooms();
         }
 
         private async Task JoinGroup(GameRoom gameRoom)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, gameRoom.Id.ToString());
-            await Clients.Group(gameRoom.Id.ToString()).ReceiveMyGameRoom(gameRoom);
+            await Clients.Group(gameRoom.Id.ToString()).ReceiveCurrentGameRoom(gameRoom);
         }
 
         private async Task SendAvailableGameRooms()
@@ -55,17 +56,17 @@ namespace GamingPlatformWebApp.Hubs
             await Clients.OthersInGroup(gameRoomId.ToString()).ReceiveOpponentMove(playerMove);
         }
 
-        public async Task SendResetGame(int gameRoomId)
+        public async Task SendRestartGame(int gameRoomId)
         {
-            await Clients.OthersInGroup(gameRoomId.ToString()).ReceiveResetGame();
+            await Clients.OthersInGroup(gameRoomId.ToString()).ReceiveRestartGame();
         }
     }
 
     public interface IGameClient
     {
         Task ReceiveAvailableGameRooms(List<GameRoom> availableGameRooms);
-        Task ReceiveMyGameRoom(GameRoom gameRoom);
+        Task ReceiveCurrentGameRoom(GameRoom gameRoom);
         Task ReceiveOpponentMove(PlayerMove playerMove);
-        Task ReceiveResetGame();
+        Task ReceiveRestartGame();
     }
 }

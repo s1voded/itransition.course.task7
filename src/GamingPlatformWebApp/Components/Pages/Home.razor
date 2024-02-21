@@ -1,7 +1,173 @@
 ﻿@page "/"
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@implements IAsyncDisposable
 
 <PageTitle>Gaming Platform</PageTitle>
 
-<h1>Hello, world!</h1>
+@if (!string.IsNullOrEmpty(currentPlayer))
+{
+    <h1>Hello @currentPlayer!</h1>
+}
+else
+{
+    <div class="mb-3">
+        <div class="input-group mb-3">
+            <input @bind="inputNickName" type="text" class="form-control" placeholder="Player nickname" aria-label="Player nickname" aria-describedby="button-addon2">
+            <button @onclick="EnterPlayer" disabled="@(!IsConnected)" class="btn btn-outline-secondary" type="button" id="button-addon2">Enter</button>
+        </div>
+        <div class="form-text" id="basic-addon4">Enter your nickname to join or create a game room.</div>
+    </div>
+}
 
-Welcome to your new app.
+@if (currentGameRoom != null)
+{
+    <h1>You joined the game: @currentGameRoom.Game</h1>
+    @if (string.IsNullOrEmpty(currentGameRoom.Player2))
+    {
+        <h1>waiting opponent...</h1>
+    }
+    else
+    {
+        <h1>@currentGameRoom.Player1 vs @currentGameRoom.Player2</h1>
+    }
+}
+
+@if (currentGameRoom == null)
+{
+    <div class="row row-cols-1 row-cols-md-4 g-4">
+        @foreach (var gameRoom in availableGameRooms)
+        {
+            if (gameRoom.Player1 != currentPlayer)
+            {
+                var gameIcon = $"{@gameRoom.Game}Icon.svg";
+                <div class="col">
+                    <div class="card h-100">
+                        <img src="img/@gameIcon" />
+                        <div class="card-body">
+                            <h5 class="card-title">@gameRoom.Game</h5>
+                            <p class="card-text">Player @gameRoom.Player1 waits for his opponent.</p>
+                        </div>
+                        <div class="card-footer text-center">
+                            <button type="button" class="btn btn-outline-dark btn-sm" disabled="@string.IsNullOrEmpty(currentPlayer)" @onclick="() => JoinGameRoom(gameRoom.Id)">Join</button>
+                        </div>
+                    </div>
+                </div>
+            }                
+        }
+        <div class="col">
+            <div class="card h-100">
+                <img src="img/NewGameIcon.svg" />
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <select class="form-select" disabled="@string.IsNullOrEmpty(currentPlayer)" @onchange="HandleGameChange">
+                            @foreach (var game in (GameType[])Enum.GetValues(typeof(GameType)))
+                            {
+                                <option value=@game>@game</option>
+                            }
+                        </select>
+                    </h5>
+                    <p class="card-text">Create your own game room.</p>
+                </div>
+                <div class="card-footer text-center">
+                    <button type="button" class="btn btn-outline-dark btn-sm" disabled="@string.IsNullOrEmpty(currentPlayer)" @onclick="() => CreateGameRoom()">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private HubConnection? hubConnection;
+    private string? inputNickName;
+    private string? currentPlayer;
+    private GameRoom? currentGameRoom;
+    private GameType selectedGame = GameType.TicTacToe;
+    private List<GameRoom> availableGameRooms = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/gamehub"))
+            .Build();
+
+        hubConnection.On<GameRoom>("ReceiveCurrentGameRoom", async (gameRoom) =>
+        {
+            currentGameRoom = gameRoom;
+            await InvokeAsync(StateHasChanged);
+        });
+
+        hubConnection.On<List<GameRoom>>("ReceiveAvailableGameRooms", async (gameRooms) =>
+        {
+            availableGameRooms = gameRooms;
+            await InvokeAsync(StateHasChanged);
+        });
+
+        hubConnection.On<PlayerMove>("ReceiveOpponentMove", async (playerMove) =>
+        {
+            //var result = ticTacToeGameSerivce.MakePlayerMove(TicTacToeGameService.BoardItem.O, playerMove);
+            //if (result) gameResult = "LOSE!";
+            await InvokeAsync(StateHasChanged);
+        });
+
+        hubConnection.On("ReceiveRestartGame", async () =>
+        {
+            //ticTacToeGameSerivce.InitEmptyBoard();
+            //gameResult = null;
+            await InvokeAsync(StateHasChanged);
+        });
+
+        await hubConnection.StartAsync();
+
+        availableGameRooms = await hubConnection.InvokeAsync<List<GameRoom>>("GetAvailableGameRooms");
+    }
+
+    private async Task EnterPlayer()
+    {
+        if (!string.IsNullOrEmpty(inputNickName))
+        {
+            currentPlayer = inputNickName;
+            inputNickName = null;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public void HandleGameChange(ChangeEventArgs args)
+    {
+        selectedGame = (GameType)Enum.Parse(typeof(GameType), args.Value.ToString());
+    }
+
+    private async Task CreateGameRoom()
+    {
+        if (hubConnection is not null)
+        {
+            if (currentPlayer != null)
+            {
+                await hubConnection.SendAsync("CreateAndJoinGameRoom", selectedGame, currentPlayer);
+            }
+        }
+    }
+
+    private async Task JoinGameRoom(int gameRoomId)
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync("JoinGameRoom", gameRoomId, currentPlayer);
+        }
+    }
+
+    public bool IsConnected =>
+        hubConnection?.State == HubConnectionState.Connected;
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            if (currentGameRoom != null)
+            {
+                await hubConnection.InvokeAsync("DeleteGameRoom", currentGameRoom);
+            }
+            await hubConnection.DisposeAsync();
+        }
+    }
+}
