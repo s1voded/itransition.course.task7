@@ -2,26 +2,16 @@
 
 namespace GamingPlatformWebApp.Services
 {
-    public class ReversiGameService: BoardGame, IBoardGameService
+    public class ReversiGameService : BoardGame, IBoardGameService
     {
-        private readonly byte boardSize = 8;
-        public byte BoardSize => boardSize;
-
-        public ReversiGameService()
+        public ReversiGameService() : base(_boardSize: 8)
         {
-            gameBoard = new BoardItem[boardSize, boardSize];
-            InitEmptyBoard();
+            StartNewGame();
         }
 
-        public void InitEmptyBoard()
+        public void StartNewGame()
         {
-            for (var i = 0; i < BoardSize; i++)
-            {
-                for (var j = 0; j < BoardSize; j++)
-                {
-                    gameBoard[i, j] = BoardItem.Empty;
-                }
-            }
+            InitEmptyBoard();
 
             var center = BoardSize / 2;
             gameBoard[center - 1, center] = gameBoard[center, center - 1] = PlayerItem;

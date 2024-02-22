@@ -6,25 +6,15 @@ namespace GamingPlatformWebApp.Services
     {
         private byte countGameMoves;
 
-        private readonly byte boardSize = 3;
-        public byte BoardSize => boardSize;
-
-        public TicTacToeGameService()
+        public TicTacToeGameService() : base(_boardSize: 3)
         {
-            gameBoard = new BoardItem[boardSize, boardSize];
-            InitEmptyBoard();
+            StartNewGame();
         }
 
-        public void InitEmptyBoard()
+        public void StartNewGame()
         {
             countGameMoves = 0;
-            for (var i = 0; i < BoardSize; i++)
-            {
-                for (var j = 0; j < BoardSize; j++)
-                {
-                    gameBoard[i, j] = EmptyItem;
-                }
-            }
+            InitEmptyBoard();
         }
 
         public bool MakeGameMove(GameMove gameMove, BoardItem boardItem)
