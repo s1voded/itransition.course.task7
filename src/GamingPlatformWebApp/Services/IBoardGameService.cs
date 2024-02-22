@@ -11,7 +11,7 @@ namespace GamingPlatformWebApp.Services
         public BoardItem EmptyItem { get; }
         public GameResult Result { get; }
         public char MovePossibleSymbol { get; }
-        public void StartNewGame();
+        public void StartNewGame(bool isOpponent);
         public bool MakeGameMove(GameMove gameMove, BoardItem boardItem);
 
         public bool MovePossible(GameMove gameMove, BoardItem boardItem);

@@ -61,6 +61,8 @@
             await InvokeAsync(StateHasChanged);
         });
 
+        GameService.StartNewGame(IsOpponent());
+
         await InitOpponentAndTurn();
     }
 
@@ -87,7 +89,7 @@
 
     private void RestartGame()
     {
-        GameService.StartNewGame();
+        GameService.StartNewGame(IsOpponent());
         gameResult = null;
     }
 
@@ -107,10 +109,12 @@
         }
     }
 
+    private bool IsOpponent() => CurrentPlayer == CurrentGameRoom?.Player2;
+
     private async Task InitOpponentAndTurn()
     {
         //player2 make game move first
-        if (CurrentPlayer == CurrentGameRoom?.Player2)
+        if (IsOpponent())
         {
             myTurnMakeGameMove = true;
             opponentNickName = CurrentGameRoom?.Player1;

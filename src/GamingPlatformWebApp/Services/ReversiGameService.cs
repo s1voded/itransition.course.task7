@@ -8,21 +8,96 @@ namespace GamingPlatformWebApp.Services
         public ReversiGameService() : base(_boardSize: 8)
         {
             movePossibleSymbol = '·';
-            StartNewGame();
         }
 
-        public void StartNewGame()
+        public void StartNewGame(bool isOpponent)
         {
             InitEmptyBoard();
 
             var center = BoardSize / 2;
-            gameBoard[center - 1, center] = gameBoard[center, center - 1] = PlayerItem;
-            gameBoard[center - 1, center - 1] = gameBoard[center, center] = OpponentItem;
+
+            if (isOpponent)
+            {
+                gameBoard[center - 1, center] = gameBoard[center, center - 1] = PlayerItem;
+                gameBoard[center - 1, center - 1] = gameBoard[center, center] = OpponentItem;
+            }
+            else
+            {
+                gameBoard[center - 1, center] = gameBoard[center, center - 1] = OpponentItem;
+                gameBoard[center - 1, center - 1] = gameBoard[center, center] = PlayerItem;
+            }
         }
 
         public bool MakeGameMove(GameMove gameMove, BoardItem boardItem)
         {
+            MakeMove(gameMove, boardItem);
+            return false;
+        }
+
+        //https://www.codeproject.com/Articles/4672/Reversi-in-C
+        private void MakeMove(GameMove gameMove, BoardItem boardItem)
+        {
+            // Set the disc on the square.
             gameBoard[gameMove.Row, gameMove.Col] = boardItem;
+
+            // Flip any flanked opponents.
+            int dr, dc;
+            int r, c;
+            for (dr = -1; dr <= 1; dr++)
+                for (dc = -1; dc <= 1; dc++)
+                    // Are there any outflanked opponents?
+                    if (!(dr == 0 && dc == 0) && IsOutflanking(boardItem, gameMove.Row, gameMove.Col, dr, dc))
+                    {
+                        r = gameMove.Row + dr;
+                        c = gameMove.Col + dc;
+                        // Flip 'em.
+                        while (gameBoard[r, c] != EmptyItem && gameBoard[r, c] != boardItem)//s1voded fix
+                        {
+                            gameBoard[r, c] = boardItem;
+                            r += dr;
+                            c += dc;
+                        }
+                    }
+
+            // Update the counts.
+            //this.UpdateCounts();
+        }
+
+        private bool IsOutflanking(BoardItem boardItem, int row, int col, int dr, int dc)
+        {
+            // Move in the given direction as long as we stay on the board and
+            // land on a disc of the opposite color.
+            int r = row + dr;
+            int c = col + dc;
+            while (r >= 0 && r < 8 && c >= 0 && c < 8 && gameBoard[r, c] != EmptyItem && gameBoard[r, c] != boardItem)//s1voded fix
+            {
+                r += dr;
+                c += dc;
+            }
+
+            // If we ran off the board, only moved one space or didn't land on
+            // a disc of the same color, return false.
+            if (r < 0 || r > 7 || c < 0 || c > 7 || (r - dr == row && c - dc == col) || gameBoard[r, c] != boardItem)
+                return false;
+
+            // Otherwise, return true;
+            return true;
+        }
+
+        public bool MovePossible(GameMove gameMove, BoardItem boardItem)
+        {
+            // The square must be empty.
+            if (gameBoard[gameMove.Row, gameMove.Col] != EmptyItem)
+                return false;
+
+            // Must be able to flip at least one opponent disc.
+            int dr, dc;
+            for (dr = -1; dr <= 1; dr++)
+                for (dc = -1; dc <= 1; dc++)
+                    if (!(dr == 0 && dc == 0) && this.IsOutflanking(boardItem, gameMove.Row, gameMove.Col, dr, dc))
+                        return true;
+
+            // No opponents could be flipped.
             return false;
         }
 
@@ -31,7 +106,7 @@ namespace GamingPlatformWebApp.Services
         //    0 W  .  E
         //   +1 SW S SE
         //https://codereview.stackexchange.com/questions/236759/reversi-move-checker
-        public bool MovePossible(GameMove gameMove, BoardItem boardItem)
+        /*public bool MovePossible(GameMove gameMove, BoardItem boardItem)
         {
             var x = gameMove.Col;
             var y = gameMove.Row;
@@ -66,6 +141,6 @@ namespace GamingPlatformWebApp.Services
             }
 
             return false;
-        }
+        }*/
     }
 }

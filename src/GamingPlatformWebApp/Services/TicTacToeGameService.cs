@@ -9,10 +9,10 @@ namespace GamingPlatformWebApp.Services
         public TicTacToeGameService() : base(_boardSize: 3)
         {
             movePossibleSymbol = ' ';
-            StartNewGame();
         }
 
-        public void StartNewGame()
+        //isOpponent not use for tic-tac-toe
+        public void StartNewGame(bool isOpponent)
         {
             countGameMoves = 0;
             InitEmptyBoard();
@@ -27,7 +27,7 @@ namespace GamingPlatformWebApp.Services
 
         public bool MovePossible(GameMove gameMove, BoardItem boardItem)
         {
-            return gameBoard[gameMove.Row, gameMove.Col] == BoardItem.Empty;
+            return gameBoard[gameMove.Row, gameMove.Col] == EmptyItem;
         }
 
         private bool CheckGameOver(GameMove gameMove, BoardItem boardItem)
