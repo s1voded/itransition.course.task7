@@ -4,11 +4,18 @@
         <div class="row justify-content-md-center">
             @for (byte j = 0; j < GameService.BoardSize; j++)
             {
+                var gameMove = new GameMove() { Row = i, Col = j };
                 <div class="col-md-auto p-0">
-                    @if (GameService.GameBoard[i, j] == GameService.EmptyItem)
+                    @if (GameService.GameBoard[i,j] == GameService.EmptyItem)
                     {
-                        var gameMove = new GameMove() { Row = i, Col = j };
-                        <button type="button" class="btn btn-outline-dark btn-square-@BoardItemBtnSize()" disabled="@(!myTurnMakeGameMove)" @onclick="() => OnMakePlayerMove(gameMove)"></button>
+                        @if (GameService.MovePossible(gameMove, GameService.PlayerItem))
+                        {
+                            <button type="button" class="btn btn-outline-dark btn-square-@BoardItemBtnSize()" disabled="@(!myTurnMakeGameMove)" @onclick="() => OnMakePlayerMove(gameMove)">@GameService.MovePossibleSymbol</button>
+                        }
+                        else
+                        {
+                            <button type="button" class="btn btn-outline-dark btn-square-@BoardItemBtnSize()" disabled="@true"></button>
+                        }
                     }
                     else
                     {

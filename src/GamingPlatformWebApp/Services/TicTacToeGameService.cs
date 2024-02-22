@@ -8,6 +8,7 @@ namespace GamingPlatformWebApp.Services
 
         public TicTacToeGameService() : base(_boardSize: 3)
         {
+            movePossibleSymbol = ' ';
             StartNewGame();
         }
 
@@ -22,6 +23,11 @@ namespace GamingPlatformWebApp.Services
             countGameMoves++;
             gameBoard[gameMove.Row, gameMove.Col] = boardItem;
             return CheckGameOver(gameMove, boardItem);
+        }
+
+        public bool MovePossible(GameMove gameMove, BoardItem boardItem)
+        {
+            return gameBoard[gameMove.Row, gameMove.Col] == BoardItem.Empty;
         }
 
         private bool CheckGameOver(GameMove gameMove, BoardItem boardItem)

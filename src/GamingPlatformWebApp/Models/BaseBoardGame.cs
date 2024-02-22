@@ -18,6 +18,9 @@
         protected BoardItem[,] gameBoard;
         public BoardItem[,] GameBoard => gameBoard;
 
+        protected char movePossibleSymbol;
+        public char MovePossibleSymbol => movePossibleSymbol;
+
         protected GameResult result;
         public GameResult Result => result;
 
