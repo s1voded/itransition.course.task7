@@ -6,7 +6,7 @@
         <div class="row justify-content-md-center">
             @for (byte j = 0; j < TicTacToeGameService.BoardSize; j++)
             {
-                <div class="col-md-auto">
+                <div class="col-md-auto p-0">
                     @if (ticTacToeGameSerivce.GameBoard[i, j] == TicTacToeGameService.BoardItem.Empty)
                     {
                         var gameMove = new GameMove() { Row = i, Col = j };
