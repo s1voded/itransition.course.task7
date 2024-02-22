@@ -1,10 +1,8 @@
-﻿using GamingPlatformWebApp.Models;
-
-namespace GamingPlatformWebApp.Services
+﻿namespace GamingPlatformWebApp.Models
 {
-    public abstract class BoardGame
+    public abstract class BaseBoardGame
     {
-        protected BoardGame(byte _boardSize)
+        protected BaseBoardGame(byte _boardSize)
         {
             boardSize = _boardSize;
             gameBoard = new BoardItem[boardSize, boardSize];

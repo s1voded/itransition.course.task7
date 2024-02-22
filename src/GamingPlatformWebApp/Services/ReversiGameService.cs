@@ -2,7 +2,7 @@
 
 namespace GamingPlatformWebApp.Services
 {
-    public class ReversiGameService : BoardGame, IBoardGameService
+    public class ReversiGameService : BaseBoardGame, IBoardGameService
     {
         public ReversiGameService() : base(_boardSize: 8)
         {

@@ -2,7 +2,7 @@
 
 namespace GamingPlatformWebApp.Services
 {
-    public class TicTacToeGameService : BoardGame, IBoardGameService
+    public class TicTacToeGameService : BaseBoardGame, IBoardGameService
     {
         private byte countGameMoves;
 
