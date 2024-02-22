@@ -1,86 +1,93 @@
 ﻿@page "/"
 @rendermode InteractiveServer
 @inject NavigationManager Navigation
+@inject IEnumerable<IBoardGameService> gameServices
 @implements IAsyncDisposable
 
 <PageTitle>Gaming Platform</PageTitle>
 
 <div class="container text-center">
-@if (!string.IsNullOrEmpty(currentPlayer))
-{
-    <h3>Hello <strong>@currentPlayer</strong>! </h3>
-}
-else
-{
-    <div class="mb-3">
-        <div class="input-group mb-3">
-            <input @bind="inputNickName" type="text" class="form-control" placeholder="Player nickname" aria-label="Player nickname" aria-describedby="button-addon2">
-            <button @onclick="EnterPlayer" disabled="@(!IsConnected)" class="btn btn-outline-secondary" type="button" id="button-addon2">Enter</button>
-        </div>
-        <div class="form-text" id="basic-addon4">Enter your nickname to join or create a game room.</div>
-    </div>
-}
-
-@if (currentGameRoom != null)
-{
-    <h4>You joined the game: <strong>@currentGameRoom.Game</strong></h4>
-    @if (string.IsNullOrEmpty(currentGameRoom.Player2))
+    @if (!string.IsNullOrEmpty(currentPlayer))
     {
-        <h5>...waiting opponent...</h5>
+        <h3>Hello <strong>@currentPlayer</strong>! </h3>
     }
     else
     {
-        <h4>@currentGameRoom.Player1 vs @currentGameRoom.Player2</h4>
-        if(currentGameRoom.Game == GameType.TicTacToe)
+        <div class="mb-3">
+            <div class="input-group mb-3">
+                <input @bind="inputNickName" type="text" class="form-control" placeholder="Player nickname" aria-label="Player nickname" aria-describedby="button-addon2">
+                <button @onclick="EnterPlayer" disabled="@(!IsConnected)" class="btn btn-outline-secondary" type="button" id="button-addon2">Enter</button>
+            </div>
+            <div class="form-text" id="basic-addon4">Enter your nickname to join or create a game room.</div>
+        </div>
+    }
+
+    @if (currentGameRoom != null)
+    {
+        <h4>You joined the game: <strong>@currentGameRoom.Game</strong></h4>
+        @if (string.IsNullOrEmpty(currentGameRoom.Player2))
         {
-            <TicTacToe HubConnection="@hubConnection" CurrentGameRoom="@currentGameRoom" CurrentPlayer="@currentPlayer"></TicTacToe>
+            <h5>...waiting opponent...</h5>
+        }
+        else
+        {
+            <h4>@currentGameRoom.Player1 vs @currentGameRoom.Player2</h4>
+
+            var gameService = GetGameService(currentGameRoom.Game);
+            if (gameService != null)
+            {
+                <GameBoard GameService="@gameService" HubConnection="@hubConnection" CurrentGameRoom="@currentGameRoom" CurrentPlayer="@currentPlayer"></GameBoard>
+            }
+            else
+            {
+                <h4>Oops. Something went wrong.</h4>
+            }
         }
     }
-}
 
-@if (currentGameRoom == null)
-{
-    <div class="row row-cols-1 row-cols-md-4 g-4">
-        @foreach (var gameRoom in availableGameRooms)
-        {
-            if (gameRoom.Player1 != currentPlayer)
+    @if (currentGameRoom == null)
+    {
+        <div class="row row-cols-1 row-cols-md-4 g-4">
+            @foreach (var gameRoom in availableGameRooms)
             {
-                var gameIcon = $"{@gameRoom.Game}Icon.svg";
-                <div class="col">
-                    <div class="card h-100">
-                        <img src="img/@gameIcon" />
-                        <div class="card-body">
-                            <h5 class="card-title">@gameRoom.Game</h5>
-                            <p class="card-text">Player <strong>@gameRoom.Player1</strong> waits for his opponent.</p>
-                        </div>
-                        <div class="card-footer text-center">
-                            <button type="button" class="btn btn-outline-dark btn-sm" disabled="@string.IsNullOrEmpty(currentPlayer)" @onclick="() => JoinGameRoom(gameRoom.Id)">Join</button>
+                if (gameRoom.Player1 != currentPlayer)
+                {
+                    var gameIcon = $"{@gameRoom.Game}Icon.svg";
+                    <div class="col">
+                        <div class="card h-100">
+                            <img src="img/@gameIcon" />
+                            <div class="card-body">
+                                <h5 class="card-title">@gameRoom.Game</h5>
+                                <p class="card-text">Player <strong>@gameRoom.Player1</strong> waits for his opponent.</p>
+                            </div>
+                            <div class="card-footer text-center">
+                                <button type="button" class="btn btn-outline-dark btn-sm" disabled="@string.IsNullOrEmpty(currentPlayer)" @onclick="() => JoinGameRoom(gameRoom.Id)">Join</button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            }                
-        }
-        <div class="col">
-            <div class="card h-100">
-                <img src="img/NewGameIcon.svg" />
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <select class="form-select" disabled="@string.IsNullOrEmpty(currentPlayer)" @onchange="HandleGameChange">
-                            @foreach (var game in (GameType[])Enum.GetValues(typeof(GameType)))
-                            {
-                                <option value=@game>@game</option>
-                            }
-                        </select>
-                    </h5>
-                    <p class="card-text">Create your own game room.</p>
-                </div>
-                <div class="card-footer text-center">
-                    <button type="button" class="btn btn-outline-dark btn-sm" disabled="@string.IsNullOrEmpty(currentPlayer)" @onclick="() => CreateGameRoom()">Create</button>
+                }
+            }
+            <div class="col">
+                <div class="card h-100">
+                    <img src="img/NewGameIcon.svg" />
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <select class="form-select" disabled="@string.IsNullOrEmpty(currentPlayer)" @onchange="HandleGameChange">
+                                @foreach (var game in (GameType[])Enum.GetValues(typeof(GameType)))
+                                {
+                                    <option value=@game>@game</option>
+                                }
+                            </select>
+                        </h5>
+                        <p class="card-text">Create your own game room.</p>
+                    </div>
+                    <div class="card-footer text-center">
+                        <button type="button" class="btn btn-outline-dark btn-sm" disabled="@string.IsNullOrEmpty(currentPlayer)" @onclick="() => CreateGameRoom()">Create</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-}
+    }
 </div>
 
 @code {
@@ -112,6 +119,8 @@ else
         await hubConnection.StartAsync();
 
         availableGameRooms = await hubConnection.InvokeAsync<List<GameRoom>>("GetAvailableGameRooms");
+
+        var g = gameServices;
     }
 
     private async Task EnterPlayer()
@@ -145,6 +154,19 @@ else
         if (hubConnection is not null)
         {
             await hubConnection.SendAsync("JoinGameRoom", gameRoomId, currentPlayer);
+        }
+    }
+
+    private IBoardGameService? GetGameService(GameType game)
+    {
+        switch (game)
+        {
+            case GameType.TicTacToe:
+                return gameServices.FirstOrDefault(game => game is TicTacToeGameService);
+            case GameType.Reversi:
+                return gameServices.FirstOrDefault(game => game is ReversiGameService);
+            default:
+                return gameServices.FirstOrDefault();
         }
     }
 

@@ -1,20 +1,18 @@
-﻿@inject TicTacToeGameService ticTacToeGameSerivce
-
-<div class="container text-center">
-    @for (byte i = 0; i < TicTacToeGameService.BoardSize; i++)
+﻿<div class="container text-center">
+    @for (byte i = 0; i < GameService.BoardSize; i++)
     {
         <div class="row justify-content-md-center">
-            @for (byte j = 0; j < TicTacToeGameService.BoardSize; j++)
+            @for (byte j = 0; j < GameService.BoardSize; j++)
             {
                 <div class="col-md-auto p-0">
-                    @if (ticTacToeGameSerivce.GameBoard[i, j] == TicTacToeGameService.BoardItem.Empty)
+                    @if (GameService.GameBoard[i, j] == GameService.EmptyItem)
                     {
                         var gameMove = new GameMove() { Row = i, Col = j };
-                        <button type="button" class="btn btn-outline-dark btn-square-md" disabled="@(!myTurnMakeGameMove)" @onclick="() => OnMakePlayerMove(gameMove)"></button>
+                        <button type="button" class="btn btn-outline-dark btn-square-@BoardItemBtnSize()" disabled="@(!myTurnMakeGameMove)" @onclick="() => OnMakePlayerMove(gameMove)"></button>
                     }
                     else
                     {
-                        <button type="button" class="btn btn-outline-dark btn-square-md" disabled="@true">@ticTacToeGameSerivce.GameBoard[i, j].ToString()</button>
+                        <button type="button" class="btn btn-outline-dark btn-square-@BoardItemBtnSize()" disabled="@true">@GameService.GameBoard[i, j].ToString()</button>
                     }
                 </div>
             }
@@ -32,6 +30,7 @@
 </div>
 
 @code {
+    [Parameter] public IBoardGameService GameService { get; set; }
     [Parameter] public HubConnection? HubConnection { get; set; }
     [Parameter] public GameRoom? CurrentGameRoom { get; set; }
     [Parameter] public string? CurrentPlayer { get; set; }
@@ -39,12 +38,13 @@
     private bool myTurnMakeGameMove = false;
     private string? opponentNickName;
     private string? gameResult;
+    private string BoardItemBtnSize() => GameService.BoardSize > 5 ? "sm" : "md";
 
     protected override async Task OnInitializedAsync()
     {
         HubConnection?.On<GameMove>("ReceiveOpponentMove", async (gameMove) =>
         {
-            MakeGameMove(gameMove, ticTacToeGameSerivce.opponentItem);
+            MakeGameMove(gameMove, GameService.OpponentItem);
             await InvokeAsync(StateHasChanged);
         });
 
@@ -59,16 +59,16 @@
 
     private async Task OnMakePlayerMove(GameMove gameMove)
     {
-        MakeGameMove(gameMove, ticTacToeGameSerivce.playerItem);
+        MakeGameMove(gameMove, GameService.PlayerItem);
         await SendMoveToOpponent(gameMove);
         await InvokeAsync(StateHasChanged);
     }
 
-    private void MakeGameMove(GameMove gameMove, TicTacToeGameService.BoardItem boardItem)
+    private void MakeGameMove(GameMove gameMove, BoardItem boardItem)
     {
         myTurnMakeGameMove = !myTurnMakeGameMove;
-        var gameOver = ticTacToeGameSerivce.MakeGameMove(gameMove, boardItem);
-        if (gameOver) gameResult = ticTacToeGameSerivce.Result.ToString();
+        var gameOver = GameService.MakeGameMove(gameMove, boardItem);
+        if (gameOver) gameResult = GameService.Result.ToString();
     }
 
     private async Task OnRestartGame()
@@ -80,7 +80,7 @@
 
     private void RestartGame()
     {
-        ticTacToeGameSerivce.InitEmptyBoard();
+        GameService.InitEmptyBoard();
         gameResult = null;
     }
 

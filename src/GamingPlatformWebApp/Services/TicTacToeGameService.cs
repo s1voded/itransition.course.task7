@@ -2,27 +2,16 @@
 
 namespace GamingPlatformWebApp.Services
 {
-    public class TicTacToeGameService
+    public class TicTacToeGameService : BoardGame, IBoardGameService
     {
-        public const byte BoardSize = 3;
-        public readonly BoardItem playerItem = BoardItem.X;
-        public readonly BoardItem opponentItem = BoardItem.O;
         private byte countGameMoves;
 
-        public GameResult Result { get; set; }
-
-        public enum BoardItem
-        {
-            Empty,
-            X,
-            O,
-        }
-
-        private readonly BoardItem[,] gameBoard = new BoardItem[BoardSize, BoardSize];
-        public BoardItem[,] GameBoard { get => gameBoard; }
+        private readonly byte boardSize = 3;
+        public byte BoardSize => boardSize;
 
         public TicTacToeGameService()
         {
+            gameBoard = new BoardItem[boardSize, boardSize];
             InitEmptyBoard();
         }
 
@@ -33,7 +22,7 @@ namespace GamingPlatformWebApp.Services
             {
                 for (var j = 0; j < BoardSize; j++)
                 {
-                    gameBoard[i, j] = BoardItem.Empty;
+                    gameBoard[i, j] = EmptyItem;
                 }
             }
         }
@@ -59,13 +48,13 @@ namespace GamingPlatformWebApp.Services
 
             if (colItems == BoardSize || rowItems == BoardSize || diagItems == BoardSize || rdiagItems == BoardSize)
             {
-                Result = boardItem == playerItem ? GameResult.Win : GameResult.Lose;
+                result = boardItem == PlayerItem ? GameResult.Win : GameResult.Lose;
                 return true;
             }
 
             if (countGameMoves == Math.Pow(BoardSize, 2))
             {
-                Result = GameResult.Draw;
+                result = GameResult.Draw;
                 return true;
             }
 

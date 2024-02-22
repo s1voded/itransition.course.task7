@@ -2,16 +2,17 @@
 {
     public enum GameType
     {
-        TicTacToe,
-        Reversi,
-        Battleship
+        TicTacToe, Reversi, Battleship
     }
 
     public enum GameResult
     {
-        Win,
-        Lose,
-        Draw
+        Draw, Win, Lose
+    }
+
+    public enum BoardItem
+    {
+        Empty, X, O
     }
 
     public class GameRoom

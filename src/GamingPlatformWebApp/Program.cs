@@ -16,7 +16,8 @@ builder.Services.AddResponseCompression(opts =>
 });
 
 builder.Services.AddScoped<IGameRepository, GameRepository>();
-builder.Services.AddTransient<TicTacToeGameService>();
+builder.Services.AddScoped<IBoardGameService, TicTacToeGameService>();
+builder.Services.AddScoped<IBoardGameService, ReversiGameService>();
 
 var app = builder.Build();
 
