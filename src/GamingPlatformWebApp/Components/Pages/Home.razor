@@ -14,7 +14,7 @@
     else
     {
         <div class="mb-3">
-            <div class="input-group mb-3">
+            <div class="input-group">
                 <input @bind="inputNickName" type="text" class="form-control" placeholder="Player nickname" aria-label="Player nickname" aria-describedby="button-addon2">
                 <button @onclick="EnterPlayer" disabled="@(!IsConnected)" class="btn btn-outline-secondary" type="button" id="button-addon2">Enter</button>
             </div>
