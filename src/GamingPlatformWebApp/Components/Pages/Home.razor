@@ -37,13 +37,20 @@
             var gameService = GetGameService(currentGameRoom.Game);
             if (gameService != null)
             {
-                <GameBoard GameService="@gameService" HubConnection="@hubConnection" CurrentGameRoom="@currentGameRoom" CurrentPlayer="@currentPlayer"></GameBoard>
+                <GameBoard @ref=@gameBoard GameService="@gameService" HubConnection="@hubConnection" CurrentGameRoom="@currentGameRoom" CurrentPlayer="@currentPlayer"></GameBoard>
             }
             else
             {
                 <h4>Oops. Something went wrong.</h4>
             }
         }
+
+        if (opponentLeave)
+        {
+            <h4>Your opponent has left the game.</h4>
+        }
+
+        <button type="button" class="btn btn-outline-dark btn-sm m-3" @onclick="LeaveGameRoom">Leave</button>
     }
 
     @if (currentGameRoom == null)
@@ -96,8 +103,10 @@
     private string? inputNickName;
     private string? currentPlayer;
     private GameRoom? currentGameRoom;
+    private bool opponentLeave;
     private GameType selectedGame = GameType.TicTacToe;
     private List<GameRoom> availableGameRooms = [];
+    private GameBoard gameBoard;
 
     protected override async Task OnInitializedAsync()
     {
@@ -117,11 +126,25 @@
             await InvokeAsync(StateHasChanged);
         });
 
+        hubConnection.On("ReceiveOpponentLeave", async () =>
+        {
+            opponentLeave = true;
+            await InvokeAsync(StateHasChanged);
+        });
+
+        hubConnection?.On<GameMove>("ReceiveOpponentMove", async (gameMove) =>
+        {
+            await gameBoard.MakeOpponentGameMove(gameMove);
+        });
+
+        hubConnection?.On("ReceiveRestartGame", async () =>
+        {
+            await gameBoard.RestartGame();
+        });
+
         await hubConnection.StartAsync();
 
         availableGameRooms = await hubConnection.InvokeAsync<List<GameRoom>>("GetAvailableGameRooms");
-
-        var g = gameServices;
     }
 
     private async Task EnterPlayer()
@@ -158,6 +181,18 @@
         }
     }
 
+    private async Task LeaveGameRoom()
+    {
+        if (hubConnection is not null)
+        {
+            selectedGame = GameType.TicTacToe;
+            opponentLeave = false;
+            await hubConnection.InvokeAsync("LeaveAndDeleteGameRoom", currentGameRoom);
+            currentGameRoom = null;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
     private IBoardGameService? GetGameService(GameType game)
     {
         switch (game)
@@ -180,7 +215,7 @@
         {
             if (currentGameRoom != null)
             {
-                await hubConnection.InvokeAsync("DeleteGameRoom", currentGameRoom);
+                await hubConnection.InvokeAsync("LeaveAndDeleteGameRoom", currentGameRoom);
             }
             await hubConnection.DisposeAsync();
         }

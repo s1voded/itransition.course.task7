@@ -53,6 +53,30 @@ namespace GamingPlatformWebApp.Services
             }
         }
 
+        public string GetIntermediateResult()
+        {
+            return $"{PlayerItem}:{playerItemsCount} - {OpponentItem}:{opponentItemsCount}";
+        }
+
+        private void CountBoardItems()
+        {
+            playerItemsCount = opponentItemsCount = 0;
+            for (var i = 0; i < boardSize; i++)
+                for (var j = 0; j < boardSize; j++)
+                {
+                    if (gameBoard[i, j] == PlayerItem)
+                    {
+                        playerItemsCount++;
+                    }
+                    else if (gameBoard[i, j] == OpponentItem)
+                    {
+                        opponentItemsCount++;
+                    }
+                    else
+                        emptyItemsCount++;
+                }
+        }
+
         //partially use and adapt the code from here: https://www.codeproject.com/Articles/4672/Reversi-in-C
         private void MakeMove(GameMove gameMove, BoardItem boardItem)
         {
@@ -120,9 +144,6 @@ namespace GamingPlatformWebApp.Services
             return false;
         }
 
-        //
-        // Determines if the player can make any valid move on the board.
-        //
         public bool HasAnyValidMove(BoardItem boardItem)
         {
             // Check all board positions for a valid move.
@@ -134,30 +155,6 @@ namespace GamingPlatformWebApp.Services
 
             // None found.
             return false;
-        }
-
-        public string GetIntermediateResult()
-        {
-            return $"{PlayerItem}:{playerItemsCount} - {OpponentItem}:{opponentItemsCount}";
-        }
-
-        private void CountBoardItems()
-        {
-            playerItemsCount = opponentItemsCount = 0;
-            for (var i = 0; i < boardSize; i++)
-                for (var j = 0; j < boardSize; j++)
-                {
-                    if (gameBoard[i, j] == PlayerItem)
-                    {
-                        playerItemsCount++;
-                    }
-                    else if (gameBoard[i, j] == OpponentItem)
-                    {
-                        opponentItemsCount++;
-                    }
-                    else
-                        emptyItemsCount++;
-                }
         }
     }
 }

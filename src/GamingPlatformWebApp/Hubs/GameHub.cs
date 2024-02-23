@@ -27,10 +27,23 @@ namespace GamingPlatformWebApp.Hubs
             await SendAvailableGameRooms();
         }
 
+        public async Task LeaveAndDeleteGameRoom(GameRoom gameRoom)
+        {
+            await LeaveGroup(gameRoom);
+            _gameRepository.RemoveGameRoom(gameRoom);
+            await SendAvailableGameRooms();
+        }
+
         private async Task JoinGroup(GameRoom gameRoom)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, gameRoom.Id.ToString());
             await Clients.Group(gameRoom.Id.ToString()).ReceiveCurrentGameRoom(gameRoom);
+        }
+
+        private async Task LeaveGroup(GameRoom gameRoom)
+        {
+            await SendOpponentLeave(gameRoom.Id);
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, gameRoom.Id.ToString());
         }
 
         private async Task SendAvailableGameRooms()
@@ -45,12 +58,6 @@ namespace GamingPlatformWebApp.Hubs
             return availableGameRooms;
         }
 
-        public async Task DeleteGameRoom(GameRoom gameRoom)
-        {
-            _gameRepository.RemoveGameRoom(gameRoom);
-            await SendAvailableGameRooms();
-        }
-
         public async Task SendMoveToOpponent(int gameRoomId, GameMove gameMove)
         {
             await Clients.OthersInGroup(gameRoomId.ToString()).ReceiveOpponentMove(gameMove);
@@ -60,6 +67,11 @@ namespace GamingPlatformWebApp.Hubs
         {
             await Clients.OthersInGroup(gameRoomId.ToString()).ReceiveRestartGame();
         }
+
+        public async Task SendOpponentLeave(int gameRoomId)
+        {
+            await Clients.OthersInGroup(gameRoomId.ToString()).ReceiveOpponentLeave();
+        }
     }
 
     public interface IGameClient
@@ -68,5 +80,6 @@ namespace GamingPlatformWebApp.Hubs
         Task ReceiveCurrentGameRoom(GameRoom gameRoom);
         Task ReceiveOpponentMove(GameMove gameMove);
         Task ReceiveRestartGame();
+        Task ReceiveOpponentLeave();
     }
 }

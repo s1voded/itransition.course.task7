@@ -49,48 +49,41 @@
 
     protected override async Task OnInitializedAsync()
     {
-        HubConnection?.On<GameMove>("ReceiveOpponentMove", async (gameMove) =>
-        {
-            MakeGameMove(gameMove, GameService.OpponentItem);
-            await InvokeAsync(StateHasChanged);
-        });
-
-        HubConnection?.On("ReceiveRestartGame", async () =>
-        {
-            RestartGame();
-            await InvokeAsync(StateHasChanged);
-        });
-
         await InitNewGame();
     }
 
     private async Task OnMakePlayerMove(GameMove gameMove)
     {
-        MakeGameMove(gameMove, GameService.PlayerItem);
+        await MakeGameMove(gameMove, GameService.PlayerItem);
         await SendMoveToOpponent(gameMove);
-        await InvokeAsync(StateHasChanged);
     }
 
-    private void MakeGameMove(GameMove gameMove, BoardItem boardItem)
+    public async Task MakeOpponentGameMove(GameMove gameMove)
+    {
+        await MakeGameMove(gameMove, GameService.OpponentItem);
+    }
+
+    private async Task MakeGameMove(GameMove gameMove, BoardItem boardItem)
     {
         myTurnMakeGameMove = !myTurnMakeGameMove;
         gameOver = GameService.MakeGameMove(gameMove, boardItem);
         intermidiateResult = GameService.GetIntermediateResult();
         if (gameOver) gameResult = GameService.Result.ToString();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task OnRestartGame()
     {
-        RestartGame();
+        await RestartGame();
         await SendRestartGame();
-        await InvokeAsync(StateHasChanged);
     }
 
-    private void RestartGame()
+    public async Task RestartGame()
     {
         GameService.StartNewGame(IsOpponent());
         gameResult = null;
         gameOver = false;
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task SendMoveToOpponent(GameMove gameMove)
