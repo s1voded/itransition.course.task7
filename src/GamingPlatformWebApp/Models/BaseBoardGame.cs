@@ -7,13 +7,12 @@
             boardSize = _boardSize;
             gameBoard = new BoardItem[boardSize, boardSize];
         }
-
-        protected short boardSize;
-        public short BoardSize => boardSize;
-
         public BoardItem PlayerItem => BoardItem.X;
         public BoardItem OpponentItem => BoardItem.O;
         public BoardItem EmptyItem => BoardItem.Empty;
+
+        protected short boardSize;
+        public short BoardSize => boardSize;
 
         protected BoardItem[,] gameBoard;
         public BoardItem[,] GameBoard => gameBoard;

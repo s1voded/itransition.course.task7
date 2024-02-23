@@ -13,9 +13,7 @@ namespace GamingPlatformWebApp.Services
         public char MovePossibleSymbol { get; }
         public void StartNewGame(bool isOpponent);
         public bool MakeGameMove(GameMove gameMove, BoardItem boardItem);
-
         public bool IsValidMove(GameMove gameMove, BoardItem boardItem);
-
         public string GetIntermediateResult();
     }
 }

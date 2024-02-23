@@ -45,7 +45,7 @@
     private bool gameOver;
     private byte boardSizeForSmallItems = 5; //if board size > 5x5 - use small board items
     private string BoardItemBtnSize() => GameService.BoardSize > boardSizeForSmallItems ? "sm" : "md";
-    private string intermidiateResult;
+    private string? intermidiateResult;
 
     protected override async Task OnInitializedAsync()
     {

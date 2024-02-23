@@ -2,7 +2,7 @@
 {
     public enum GameType
     {
-        TicTacToe, Reversi, Battleship
+        TicTacToe, Reversi//, Battleship
     }
 
     public enum GameResult

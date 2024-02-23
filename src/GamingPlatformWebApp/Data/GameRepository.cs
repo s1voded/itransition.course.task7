@@ -6,14 +6,11 @@ namespace GamingPlatformWebApp.Data
     {
         private static readonly List<GameRoom> gameRooms = [];
         private static int id = 1;
-        private static int GenerateId()
-        {
-            return id++;
-        }
+        private static int GenerateId => id++;
 
         public GameRoom AddGameRoom(GameType game, string player)
         {
-            var gameRoom = new GameRoom() { Id = GenerateId(), Game = game, Player1 = player };
+            var gameRoom = new GameRoom() { Id = GenerateId, Game = game, Player1 = player };
             gameRooms.Add(gameRoom);
             return gameRoom;
         }

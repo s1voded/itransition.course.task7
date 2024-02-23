@@ -16,7 +16,7 @@
         <div class="mb-3">
             <div class="input-group">
                 <input @bind:event="oninput" @bind="inputNickName" @onkeydown="@Enter" type="text" class="form-control" placeholder="Player nickname" aria-label="Player nickname" aria-describedby="button-addon2">
-                <button @onclick="EnterPlayer" disabled="@(!IsConnected)" class="btn btn-outline-secondary" type="button" id="button-addon2">Enter</button>
+                <button @onclick="OnEnterPlayer" disabled="@(!IsConnected)" class="btn btn-outline-secondary" type="button" id="button-addon2">Enter</button>
             </div>
             <div class="form-text" id="basic-addon4">Enter your nickname to join or create a game room.</div>
         </div>
@@ -50,7 +50,7 @@
             <h4>Your opponent has left the game.</h4>
         }
 
-        <button type="button" class="btn btn-outline-dark btn-sm m-3" @onclick="LeaveGameRoom">Leave</button>
+        <button type="button" class="btn btn-outline-dark btn-sm m-3" @onclick="OnLeaveGameRoom">Leave</button>
     }
 
     @if (currentGameRoom == null)
@@ -69,7 +69,7 @@
                                 <p class="card-text">Player <strong>@gameRoom.Player1</strong> waits for his opponent.</p>
                             </div>
                             <div class="card-footer text-center">
-                                <button type="button" class="btn btn-outline-dark btn-sm" disabled="@string.IsNullOrEmpty(currentPlayer)" @onclick="() => JoinGameRoom(gameRoom.Id)">Join</button>
+                                <button type="button" class="btn btn-outline-dark btn-sm" disabled="@string.IsNullOrEmpty(currentPlayer)" @onclick="() => OnJoinGameRoom(gameRoom.Id)">Join</button>
                             </div>
                         </div>
                     </div>
@@ -80,7 +80,7 @@
                     <img src="img/NewGameIcon.svg" />
                     <div class="card-body">
                         <h5 class="card-title">
-                            <select class="form-select" disabled="@string.IsNullOrEmpty(currentPlayer)" @onchange="HandleGameChange">
+                            <select class="form-select" disabled="@string.IsNullOrEmpty(currentPlayer)" @onchange="OnSelectGame">
                                 @foreach (var game in (GameType[])Enum.GetValues(typeof(GameType)))
                                 {
                                     <option value=@game>@game</option>
@@ -90,7 +90,7 @@
                         <p class="card-text">Create your own game room.</p>
                     </div>
                     <div class="card-footer text-center">
-                        <button type="button" class="btn btn-outline-dark btn-sm" disabled="@string.IsNullOrEmpty(currentPlayer)" @onclick="() => CreateGameRoom()">Create</button>
+                        <button type="button" class="btn btn-outline-dark btn-sm" disabled="@string.IsNullOrEmpty(currentPlayer)" @onclick="() => OnCreateGameRoom()">Create</button>
                     </div>
                 </div>
             </div>
@@ -147,7 +147,7 @@
         availableGameRooms = await hubConnection.InvokeAsync<List<GameRoom>>("GetAvailableGameRooms");
     }
 
-    private async Task EnterPlayer()
+    private async Task OnEnterPlayer()
     {
         if (!string.IsNullOrEmpty(inputNickName))
         {
@@ -157,20 +157,20 @@
         }
     }
 
-    public async Task Enter(KeyboardEventArgs e)
+    private async Task Enter(KeyboardEventArgs e)
     {
         if (e.Code == "Enter" || e.Code == "NumpadEnter")
         {
-            await EnterPlayer();
+            await OnEnterPlayer();
         }
     }
 
-    public void HandleGameChange(ChangeEventArgs args)
+    private void OnSelectGame(ChangeEventArgs args)
     {
         selectedGame = (GameType)Enum.Parse(typeof(GameType), args.Value.ToString());
     }
 
-    private async Task CreateGameRoom()
+    private async Task OnCreateGameRoom()
     {
         if (hubConnection is not null)
         {
@@ -181,7 +181,7 @@
         }
     }
 
-    private async Task JoinGameRoom(int gameRoomId)
+    private async Task OnJoinGameRoom(int gameRoomId)
     {
         if (hubConnection is not null)
         {
@@ -189,7 +189,7 @@
         }
     }
 
-    private async Task LeaveGameRoom()
+    private async Task OnLeaveGameRoom()
     {
         if (hubConnection is not null)
         {
