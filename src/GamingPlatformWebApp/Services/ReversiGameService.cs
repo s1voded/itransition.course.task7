@@ -1,20 +1,22 @@
 ﻿using GamingPlatformWebApp.Models;
-using System.Drawing;
 
 namespace GamingPlatformWebApp.Services
 {
     public class ReversiGameService : BaseBoardGame, IBoardGameService
     {
+        private ushort playerItemsCount;
+        private ushort opponentItemsCount;
+        private ushort emptyItemsCount;
         public ReversiGameService() : base(_boardSize: 8)
         {
-            movePossibleSymbol = '·';
+            movePossibleSymbol = 'x';
         }
 
         public void StartNewGame(bool isOpponent)
         {
             InitEmptyBoard();
 
-            var center = BoardSize / 2;
+            var center = boardSize / 2;
 
             if (isOpponent)
             {
@@ -26,15 +28,32 @@ namespace GamingPlatformWebApp.Services
                 gameBoard[center - 1, center] = gameBoard[center, center - 1] = OpponentItem;
                 gameBoard[center - 1, center - 1] = gameBoard[center, center] = PlayerItem;
             }
+
+            CountBoardItems();
         }
 
         public bool MakeGameMove(GameMove gameMove, BoardItem boardItem)
         {
             MakeMove(gameMove, boardItem);
-            return false;
+
+            if (!HasAnyValidMove(boardItem == PlayerItem ? OpponentItem : PlayerItem))//game over
+            {
+                if (playerItemsCount != opponentItemsCount)
+                {
+                    result = boardItem == PlayerItem
+                        ? playerItemsCount > opponentItemsCount ? GameResult.Win : GameResult.Lose
+                        : opponentItemsCount > playerItemsCount ? GameResult.Lose : GameResult.Win;
+                }
+                else result = GameResult.Draw;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
-        //https://www.codeproject.com/Articles/4672/Reversi-in-C
+        //partially use and adapt the code from here: https://www.codeproject.com/Articles/4672/Reversi-in-C
         private void MakeMove(GameMove gameMove, BoardItem boardItem)
         {
             // Set the disc on the square.
@@ -51,7 +70,7 @@ namespace GamingPlatformWebApp.Services
                         r = gameMove.Row + dr;
                         c = gameMove.Col + dc;
                         // Flip 'em.
-                        while (gameBoard[r, c] != EmptyItem && gameBoard[r, c] != boardItem)//s1voded fix
+                        while (gameBoard[r, c] != EmptyItem && gameBoard[r, c] != boardItem)
                         {
                             gameBoard[r, c] = boardItem;
                             r += dr;
@@ -60,16 +79,16 @@ namespace GamingPlatformWebApp.Services
                     }
 
             // Update the counts.
-            //this.UpdateCounts();
+            CountBoardItems();
         }
 
         private bool IsOutflanking(BoardItem boardItem, int row, int col, int dr, int dc)
         {
             // Move in the given direction as long as we stay on the board and
             // land on a disc of the opposite color.
-            int r = row + dr;
-            int c = col + dc;
-            while (r >= 0 && r < 8 && c >= 0 && c < 8 && gameBoard[r, c] != EmptyItem && gameBoard[r, c] != boardItem)//s1voded fix
+            var r = row + dr;
+            var c = col + dc;
+            while (r >= 0 && r < boardSize && c >= 0 && c < boardSize && gameBoard[r, c] != EmptyItem && gameBoard[r, c] != boardItem)
             {
                 r += dr;
                 c += dc;
@@ -77,14 +96,14 @@ namespace GamingPlatformWebApp.Services
 
             // If we ran off the board, only moved one space or didn't land on
             // a disc of the same color, return false.
-            if (r < 0 || r > 7 || c < 0 || c > 7 || (r - dr == row && c - dc == col) || gameBoard[r, c] != boardItem)
+            if (r < 0 || r > boardSize - 1 || c < 0 || c > boardSize - 1 || (r - dr == row && c - dc == col) || gameBoard[r, c] != boardItem)
                 return false;
 
             // Otherwise, return true;
             return true;
         }
 
-        public bool MovePossible(GameMove gameMove, BoardItem boardItem)
+        public bool IsValidMove(GameMove gameMove, BoardItem boardItem)
         {
             // The square must be empty.
             if (gameBoard[gameMove.Row, gameMove.Col] != EmptyItem)
@@ -101,46 +120,44 @@ namespace GamingPlatformWebApp.Services
             return false;
         }
 
-        //dx    -1 0 +1
-        //dy -1 NW N NE
-        //    0 W  .  E
-        //   +1 SW S SE
-        //https://codereview.stackexchange.com/questions/236759/reversi-move-checker
-        /*public bool MovePossible(GameMove gameMove, BoardItem boardItem)
+        //
+        // Determines if the player can make any valid move on the board.
+        //
+        public bool HasAnyValidMove(BoardItem boardItem)
         {
-            var x = gameMove.Col;
-            var y = gameMove.Row;
+            // Check all board positions for a valid move.
+            short r, c;
+            for (r = 0; r < boardSize; r++)
+                for (c = 0; c < boardSize; c++)
+                    if (IsValidMove(new GameMove { Row = r, Col = c }, boardItem))
+                        return true;
 
-            for (int dx = -1; dx <= 1; dx++)
-            {
-                for (int dy = -1; dy <= 1; dy++)
-                {
-                    if (dx == 0 && dy == 0)
-                        continue;
-
-                    if (x + dx < 0 || x + dx > 7 || y + dy < 0 || y + dy > 7)
-                        continue;
-
-                    if (gameBoard[y + dy, x + dx] != OpponentItem)
-                        continue;
-
-                    int i = 2;
-                    while (i <= 7)
-                    {
-                        if (x + i * dx < 0 || x + i * dx > 7 || y + i * dy < 0 || y + i * dy > 7)
-                            break;
-                        if (gameBoard[y + i * dy, x + i * dx] == EmptyItem)
-                            break;
-                        if (gameBoard[y + i * dy, x + i * dx] == boardItem)
-                        {
-                            return true;
-                        }
-                        i++;
-                    }
-                }
-            }
-
+            // None found.
             return false;
-        }*/
+        }
+
+        public string GetIntermediateResult()
+        {
+            return $"{PlayerItem}:{playerItemsCount} - {OpponentItem}:{opponentItemsCount}";
+        }
+
+        private void CountBoardItems()
+        {
+            playerItemsCount = opponentItemsCount = 0;
+            for (var i = 0; i < boardSize; i++)
+                for (var j = 0; j < boardSize; j++)
+                {
+                    if (gameBoard[i, j] == PlayerItem)
+                    {
+                        playerItemsCount++;
+                    }
+                    else if (gameBoard[i, j] == OpponentItem)
+                    {
+                        opponentItemsCount++;
+                    }
+                    else
+                        emptyItemsCount++;
+                }
+        }
     }
 }

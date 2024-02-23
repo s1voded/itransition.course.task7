@@ -31,7 +31,8 @@
         }
         else
         {
-            <h4>@currentGameRoom.Player1 vs @currentGameRoom.Player2</h4>
+            var opponent = currentPlayer == currentGameRoom.Player1 ? currentGameRoom.Player2 : currentGameRoom.Player1;
+            <h4>@currentPlayer vs @opponent</h4>
 
             var gameService = GetGameService(currentGameRoom.Game);
             if (gameService != null)

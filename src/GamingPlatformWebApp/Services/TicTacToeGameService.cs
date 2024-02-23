@@ -11,7 +11,6 @@ namespace GamingPlatformWebApp.Services
             movePossibleSymbol = ' ';
         }
 
-        //isOpponent not use for tic-tac-toe
         public void StartNewGame(bool isOpponent)
         {
             countGameMoves = 0;
@@ -25,7 +24,7 @@ namespace GamingPlatformWebApp.Services
             return CheckGameOver(gameMove, boardItem);
         }
 
-        public bool MovePossible(GameMove gameMove, BoardItem boardItem)
+        public bool IsValidMove(GameMove gameMove, BoardItem boardItem)
         {
             return gameBoard[gameMove.Row, gameMove.Col] == EmptyItem;
         }
@@ -34,27 +33,32 @@ namespace GamingPlatformWebApp.Services
         {
             byte rowItems = 0, colItems = 0, diagItems = 0, rdiagItems = 0;
 
-            for (var i = 0; i < BoardSize; i++)
+            for (var i = 0; i < boardSize; i++)
             {
                 if (gameBoard[i, gameMove.Col] == boardItem) colItems++;
                 if (gameBoard[gameMove.Row, i] == boardItem) rowItems++;
                 if (gameBoard[i, i] == boardItem) diagItems++;
-                if (gameBoard[i, (BoardSize - 1) - i] == boardItem) rdiagItems++;
+                if (gameBoard[i, (boardSize - 1) - i] == boardItem) rdiagItems++;
             }
 
-            if (colItems == BoardSize || rowItems == BoardSize || diagItems == BoardSize || rdiagItems == BoardSize)
+            if (colItems == boardSize || rowItems == boardSize || diagItems == boardSize || rdiagItems == boardSize)
             {
                 result = boardItem == PlayerItem ? GameResult.Win : GameResult.Lose;
                 return true;
             }
 
-            if (countGameMoves == Math.Pow(BoardSize, 2))
+            if (countGameMoves == Math.Pow(boardSize, 2))
             {
                 result = GameResult.Draw;
                 return true;
             }
 
             return false;
+        }
+
+        public string GetIntermediateResult()
+        {
+            return "";
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿<div class="container text-center">
+    <h5>@intermidiateResult</h5>
     @for (byte i = 0; i < GameService.BoardSize; i++)
     {
         <div class="row justify-content-md-center">
@@ -6,34 +7,30 @@
             {
                 var gameMove = new GameMove() { Row = i, Col = j };
                 <div class="col-md-auto p-0">
-                    @if (GameService.GameBoard[i,j] == GameService.EmptyItem)
+                    @if (GameService.IsValidMove(gameMove, GameService.PlayerItem))
                     {
-                        @if (GameService.MovePossible(gameMove, GameService.PlayerItem))
-                        {
-                            <button type="button" class="btn btn-outline-dark btn-square-@BoardItemBtnSize()" disabled="@(!myTurnMakeGameMove)" @onclick="() => OnMakePlayerMove(gameMove)">@GameService.MovePossibleSymbol</button>
-                        }
-                        else
-                        {
-                            <button type="button" class="btn btn-outline-dark btn-square-@BoardItemBtnSize()" disabled="@true"></button>
-                        }
+                        <button type="button" class="btn btn-outline-dark custom-btn-font-size btn-square-@BoardItemBtnSize()" disabled="@(!myTurnMakeGameMove || gameOver)" @onclick="() => OnMakePlayerMove(gameMove)">@ShowMovePossibleSymbol()</button>
                     }
                     else
                     {
-                        <button type="button" class="btn btn-outline-dark btn-square-@BoardItemBtnSize()" disabled="@true">@GameService.GameBoard[i, j].ToString()</button>
+                        <button type="button" class="btn btn-outline-dark btn-square-@BoardItemBtnSize()" disabled>@GetBoardItemContent(GameService.GameBoard[i, j])</button>
                     }
                 </div>
             }
         </div>
     }
 
-    @if (myTurnMakeGameMove) {<h5>@CurrentPlayer turn</h5>}
-    else {<h5>@opponentNickName turn</h5>}
-
-    @if(!string.IsNullOrEmpty(gameResult))
+    @if(!gameOver)
+    {
+        var playerTurn = myTurnMakeGameMove ? @CurrentPlayer : opponent;
+        <h5><strong>@playerTurn</strong> turn</h5>
+    }  
+    else
     {
         <h2>@gameResult</h2>
         <button type="button" class="btn btn-primary" @onclick="OnRestartGame">Restart game</button>
     }
+
 </div>
 
 @code {
@@ -43,9 +40,12 @@
     [Parameter] public string? CurrentPlayer { get; set; }
 
     private bool myTurnMakeGameMove = false;
-    private string? opponentNickName;
+    private string? opponent;
     private string? gameResult;
-    private string BoardItemBtnSize() => GameService.BoardSize > 5 ? "sm" : "md";
+    private bool gameOver;
+    private byte boardSizeForSmallItems = 5; //if board size > 5x5 - use small board items
+    private string BoardItemBtnSize() => GameService.BoardSize > boardSizeForSmallItems ? "sm" : "md";
+    private string intermidiateResult;
 
     protected override async Task OnInitializedAsync()
     {
@@ -61,9 +61,7 @@
             await InvokeAsync(StateHasChanged);
         });
 
-        GameService.StartNewGame(IsOpponent());
-
-        await InitOpponentAndTurn();
+        await InitNewGame();
     }
 
     private async Task OnMakePlayerMove(GameMove gameMove)
@@ -76,7 +74,8 @@
     private void MakeGameMove(GameMove gameMove, BoardItem boardItem)
     {
         myTurnMakeGameMove = !myTurnMakeGameMove;
-        var gameOver = GameService.MakeGameMove(gameMove, boardItem);
+        gameOver = GameService.MakeGameMove(gameMove, boardItem);
+        intermidiateResult = GameService.GetIntermediateResult();
         if (gameOver) gameResult = GameService.Result.ToString();
     }
 
@@ -91,6 +90,7 @@
     {
         GameService.StartNewGame(IsOpponent());
         gameResult = null;
+        gameOver = false;
     }
 
     private async Task SendMoveToOpponent(GameMove gameMove)
@@ -111,18 +111,19 @@
 
     private bool IsOpponent() => CurrentPlayer == CurrentGameRoom?.Player2;
 
-    private async Task InitOpponentAndTurn()
+    private char ShowMovePossibleSymbol() => myTurnMakeGameMove ? GameService.MovePossibleSymbol : ' ';
+
+    private async Task InitNewGame()
     {
-        //player2 make game move first
-        if (IsOpponent())
-        {
-            myTurnMakeGameMove = true;
-            opponentNickName = CurrentGameRoom?.Player1;
-        }
-        else
-        {
-            opponentNickName = CurrentGameRoom?.Player2;
-        }
+        GameService.StartNewGame(IsOpponent());
+        myTurnMakeGameMove = IsOpponent();
+        intermidiateResult = GameService.GetIntermediateResult();
+        opponent = IsOpponent() ? CurrentGameRoom?.Player1 : CurrentGameRoom?.Player2;
         await InvokeAsync(StateHasChanged);
+    }
+
+    private string GetBoardItemContent(BoardItem boardItem)
+    {
+        return boardItem != GameService.EmptyItem ? boardItem.ToString() : "";
     }
 }

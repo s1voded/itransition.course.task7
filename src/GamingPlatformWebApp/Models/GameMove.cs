@@ -2,7 +2,7 @@
 {
     public class GameMove
     {
-        public byte Row { get; set; }
-        public byte Col { get; set; }
+        public short Row { get; set; }
+        public short Col { get; set; }
     }
 }

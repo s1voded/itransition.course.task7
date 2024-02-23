@@ -57,7 +57,7 @@ h1:focus {
     height: 100px !important;
     text-align: center;
     padding: 0px;
-    font-size: 36px;
+    font-size: 50px;
 }
 
 .btn-square-sm {
@@ -67,5 +67,9 @@ h1:focus {
     height: 50px !important;
     text-align: center;
     padding: 0px;
-    font-size: 18px;
+    font-size: 25px;
+}
+
+.custom-btn-font-size {
+    font-size: 12px;
 }
